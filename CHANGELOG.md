@@ -20,3 +20,10 @@ project uses [Semantic Versioning](https://semver.org/).
 - Works offline: the last loaded data stays on the device and the app shell
   is cached by a service worker.
 - Switch between automatic, light and dark colour scheme.
+
+### Changed
+
+- New order below the calendar: key figures, next workout, then the last
+  workout.
+- The app is now called "Fitness-Dash" (headline, browser tab and installed
+  app).
