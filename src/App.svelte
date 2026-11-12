@@ -93,13 +93,16 @@
       <p class="banner" role="status">{error} Angezeigt wird der zuletzt geladene Stand.</p>
     {/if}
 
-    <Activity {model} />
+    <Activity {model}>
+      {#if model.workouts.length > 0}
+        <Stats {model} />
+        {#if model.next}
+          <NextWorkout next={model.next} />
+        {/if}
+      {/if}
+    </Activity>
 
     {#if model.workouts.length > 0}
-      <Stats {model} />
-      {#if model.next}
-        <NextWorkout next={model.next} />
-      {/if}
       <WeeklyVolume weeks={model.weeks} />
       <ExerciseList exercises={model.exercises} />
     {:else}

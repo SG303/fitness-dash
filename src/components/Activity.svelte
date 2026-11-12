@@ -1,6 +1,7 @@
 <script lang="ts">
   import { addDays, weekStart } from '../lib/dates';
   import { formatLongDate, formatMonthShort, formatWhole, plural } from '../lib/format';
+  import type { Snippet } from 'svelte';
   import type { Model } from '../lib/model';
   import DayDetail from './DayDetail.svelte';
 
@@ -9,7 +10,7 @@
   const LABEL_WIDTH = 28;
   const WEEKDAYS = ['Mo', '', 'Mi', '', 'Fr', '', ''];
 
-  let { model }: { model: Model } = $props();
+  let { model, children }: { model: Model; children?: Snippet } = $props();
 
   let picked = $state<string | null>(null);
   const selected = $derived(picked && model.workoutsByDate.has(picked) ? picked : (model.lastWorkout?.date ?? null));
@@ -49,7 +50,7 @@
 </script>
 
 <section class="activity" aria-labelledby="title">
-  <h1 id="title" class="headline">Fitness-Tracker</h1>
+  <h1 id="title" class="headline">Fitness-Dash</h1>
   <p class="subline">{status}</p>
 
   <div class="calendar" bind:clientWidth={width}>
@@ -104,6 +105,8 @@
     <span class="key"><span class="swatch now" aria-hidden="true"></span>Heute</span>
     <span class="count">{plural(shownCount, 'Training', 'Trainings')} in {months} Monaten</span>
   </div>
+
+  {@render children?.()}
 
   {#if selected}
     <DayDetail {model} date={selected} onpick={(date: string) => (picked = date)} />
