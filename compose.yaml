@@ -1,0 +1,15 @@
+services:
+  fitness-dash:
+    build: .
+    image: fitness-dash:local
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8090}:80"
+    volumes:
+      # The directory, not the file: Hermes replaces the file on every save,
+      # and a single-file mount would keep showing the old version.
+      - "${DATA_DIR:?Set DATA_DIR in .env}:/srv/data:ro"
+    read_only: true
+    tmpfs:
+      - /config
+      - /data

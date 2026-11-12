@@ -1,0 +1,211 @@
+:root {
+  color-scheme: light dark;
+  --bg: light-dark(#f3f4f5, #121416);
+  --raised: light-dark(#ffffff, #1b1e21);
+  --ink: light-dark(#17191c, #e9ebed);
+  --ink-2: light-dark(#4c5259, #a9afb6);
+  --ink-3: light-dark(#5f666e, #8a9098);
+  --rule: light-dark(#dcdfe3, #2b2f34);
+  --dot: light-dark(#e0e3e6, #262a2e);
+  --bar: light-dark(#7d848c, #6b727a);
+  --green: light-dark(#1c7f45, #45ba76);
+  --warn: light-dark(#875800, #e0a845);
+
+  --font: 'Archivo Variable', system-ui, sans-serif;
+  /* Type scale (ratio ~1.25 from 16px). */
+  --step--1: 0.8125rem;
+  --step-0: 1rem;
+  --step-1: 1.25rem;
+  --step-2: 1.5625rem;
+  --step-3: 2rem;
+  --gutter: clamp(1rem, 5vw, 2rem);
+  --measure: 42rem;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: var(--step-0);
+  line-height: 1.5;
+  font-stretch: 100%;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+p,
+ol,
+ul,
+dl,
+dd,
+figure {
+  margin: 0;
+}
+
+ol,
+ul {
+  padding: 0;
+  list-style: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Condensed numbers, stamped like the figures on a weight plate. */
+.figure {
+  font-stretch: 75%;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  font-variant-numeric: proportional-nums;
+}
+
+.section-title {
+  font-size: var(--step-1);
+  font-weight: 700;
+  font-stretch: 112%;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.section-note {
+  margin-top: 0.25rem;
+  color: var(--ink-2);
+  font-size: var(--step--1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Chart tooltip: the value leads, the label follows. */
+.tip {
+  position: absolute;
+  top: 0;
+  z-index: 2;
+  min-width: 7.5rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: 8px;
+  background: var(--ink);
+  color: var(--bg);
+  font-size: var(--step--1);
+  line-height: 1.35;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.tip strong {
+  display: block;
+  font-size: var(--step-0);
+  font-stretch: 85%;
+  font-weight: 700;
+}
+
+.tip span {
+  display: block;
+  opacity: 0.8;
+}
+
+.axis-label {
+  fill: var(--ink-3);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.gridline {
+  stroke: var(--rule);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+.chart-svg {
+  display: block;
+  overflow: visible;
+  touch-action: pan-y;
+}
+
+.chart-svg:focus-visible {
+  outline-offset: 4px;
+}
+
+.table-toggle {
+  margin-top: 0.75rem;
+  font-size: var(--step--1);
+}
+
+.table-toggle summary {
+  display: inline-block;
+  padding: 0.35rem 0;
+  color: var(--ink-2);
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: var(--rule);
+  text-underline-offset: 3px;
+}
+
+.data-table {
+  width: 100%;
+  margin-top: 0.5rem;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table th,
+.data-table td {
+  padding: 0.35rem 0.5rem 0.35rem 0;
+  border-bottom: 1px solid var(--rule);
+  text-align: left;
+}
+
+.data-table th {
+  color: var(--ink-2);
+  font-weight: 600;
+}
+
+.data-table .num {
+  text-align: right;
+}
