@@ -1,0 +1,19 @@
+{
+  "id": "/",
+  "name": "Fitness-Tracker",
+  "short_name": "Fitness",
+  "description": "Trainingstage, Gewichte und Volumen aus dem Hermes-Trainingslog.",
+  "lang": "de-CH",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f3f4f5",
+  "theme_color": "#17191c",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" },
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

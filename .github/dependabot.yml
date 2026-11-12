@@ -1,0 +1,41 @@
+# Dependabot config (baseline v1).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: sunday
+      time: "22:00"
+      timezone: Europe/Zurich
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        update-types: [minor, patch]
+
+  # Node with npm (package.json + package-lock.json)
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: sunday
+      time: "22:00"
+      timezone: Europe/Zurich
+    cooldown:
+      default-days: 7
+    groups:
+      npm:
+        update-types: [minor, patch]
+    open-pull-requests-limit: 5
+
+  # Base images in the Dockerfile
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+      day: sunday
+      time: "22:00"
+      timezone: Europe/Zurich
+    cooldown:
+      default-days: 7
