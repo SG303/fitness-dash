@@ -4,7 +4,7 @@ Personal, mobile-first dashboard for a gym log: a static Svelte app served by
 Caddy in a container, reading `trainingsdaten.json` written by a Hermes agent
 on the same host. Public repository.
 
-Follows the SG303 baseline v1 (`sgstack/global/AGENTS.md`,
+Follows the SG303 baseline v2 (`sgstack/global/AGENTS.md`,
 `sgstack/baseline/tools.md`). If you cannot read those: work on a branch,
 open a PR, merge only with green checks (squash); never commit secrets or
 personal data; English for everything in the repo; talk to me in German.

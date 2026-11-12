@@ -17,6 +17,9 @@ up to date and shows:
 The dashboard only reads. All numbers are computed in the browser from the
 JSON file; there is no database and no backend code.
 
+> [!NOTE]
+> Personal project, built with AI coding agents under my supervision. Review the code carefully before you use it.
+
 ## Run it
 
 Requires Docker with Compose.
@@ -71,3 +74,9 @@ The app reads `schema_version` 1 of `trainingsdaten.json`:
 - `exercise_comments{}`: the current note per exercise.
 
 Entries without a `workout_date` are ignored. Weights are used as reported.
+
+## Status
+
+Personal project, built with AI coding agents under my supervision. There is
+no support and no stability guarantee; review the code carefully before you
+rely on it. See [LICENSE](LICENSE) for the warranty terms.
