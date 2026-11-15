@@ -22,7 +22,8 @@ up to date and shows:
   of the last four weeks.
 
 The dashboard only reads. All numbers are computed in the browser from the
-JSON file; there is no database and no backend code.
+JSON file; there is no database and no backend code. The only exception is the
+optional Withings service below, which fetches body weight.
 
 > [!NOTE]
 > Personal project, built with AI coding agents under my supervision. Review the code carefully before you use it.
@@ -58,6 +59,33 @@ itself with a service worker, so it also opens without a connection and says
 so. The colour scheme follows the device or can be set to light or dark. Remove the proxy with
 `sudo tailscale serve --https=8443 off`.
 
+### Weight from Withings (optional)
+
+A small extra container fetches your weight from a Withings scale every 15
+minutes and writes it to `gewichtsdaten.json`, separate from the training
+data. Without it, the dashboard works as before.
+
+1. Create an app in the [Withings developer portal](https://developer.withings.com/)
+   and register the callback URL of your dashboard, for example
+   `https://<machine>.<tailnet>.ts.net:8443/withings/callback`.
+2. Put its client ID and secret and exactly that callback URL into `.env`
+   (see `.env.example`).
+3. Start both containers:
+
+   ```sh
+   docker compose --profile withings up -d --build
+   ```
+
+4. Open `/withings/` on the dashboard, choose "Mit Withings verbinden" and
+   allow access. The page then shows the last sync and how many measurements
+   were taken over.
+
+Only measurements that Withings surely attributes to your profile count:
+those the scale assigned to you and those you entered yourself. Measurements
+the scale could not assign to one person are left out until you assign them
+to yourself in the Withings app. The tokens stay in the `withings-state`
+volume; Caddy serves only `gewichtsdaten.json` from the service.
+
 ## Develop
 
 ```sh
@@ -83,6 +111,10 @@ The app reads `schema_version` 1 of `trainingsdaten.json`:
 - `exercise_comments{}`: the current note per exercise.
 
 Entries without a `workout_date` are ignored. Weights are used as reported.
+
+`gewichtsdaten.json` (written by the Withings service, `schema_version` 1)
+holds `updated_at` (last successful sync), `timezone` and `measurements[]`
+with `measured_at`, the local `date` and `weight_kg`, oldest first.
 
 ### Muscle map
 

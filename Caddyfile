@@ -18,6 +18,20 @@
 		file_server
 	}
 
+	# Weight from the optional Withings service; 404 while it has not synced.
+	handle /data/gewichtsdaten.json {
+		root * /srv/weight
+		uri strip_prefix /data
+		header Cache-Control no-cache
+		file_server
+	}
+
+	# Connection page and OAuth callback of the Withings service.
+	redir /withings /withings/
+	handle /withings/* {
+		reverse_proxy withings:8080
+	}
+
 	handle {
 		root * /srv/app
 		@shell not path /assets/*

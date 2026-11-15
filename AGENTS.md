@@ -17,6 +17,7 @@ personal data; English for everything in the repo; talk to me in German.
 - Run locally: `npm run dev` (binds 0.0.0.0, port 5173, sample data;
   `DATA_DIR=<dir>` for real data)
 - Run as a service: `docker compose up -d --build` (port from `.env`, default 8090)
+- With the Withings sync: `docker compose --profile withings up -d --build`
 
 ## Release
 
@@ -58,12 +59,20 @@ versioned GitHub releases without build artifacts.
 - Mount the data directory, not the file: Hermes replaces the file, and a
   single-file bind mount would keep the old inode. `Caddyfile` exposes only
   `/data/trainingsdaten.json`; the directory also holds private photos.
-- Never commit real training data; `sample-data/` is fictional.
+- The optional Withings service lives in `withings/` (compose profile
+  `withings`): `withings.ts` holds the API calls and the conversion as
+  testable functions, `server.ts` the OAuth pages and the 15-minute sync.
+  Node runs the TypeScript directly, so it uses only erasable syntax and no
+  dependencies. It writes `gewichtsdaten.json` to its own volume and never
+  touches the Hermes data. Keep only measurements whose `attrib` surely
+  belongs to the user (scale used by several people).
+- Never commit real training data; `sample-data/` is fictional. The same goes
+  for weight data, client IDs, secrets and the real callback URL.
 - UI copy is German (de-CH, "ss" instead of "ß"); code and docs are English.
 - Charts are hand-written SVG (no chart library). Every chart has a table view.
 - Offline: `App.svelte` keeps the last good data file in localStorage;
   `public/sw.js` caches the app shell (network first, hashed `/assets/` cache
-  first) and never touches `/data/`. Bump `CACHE` in `sw.js` when its caching
+  first) and never touches `/data/` or `/withings/`. Bump `CACHE` in `sw.js` when its caching
   rules change.
 - Colours are `light-dark()` pairs in `src/app.css`; `data-theme` on `<html>`
   (set by `src/lib/theme.ts`) forces light or dark.

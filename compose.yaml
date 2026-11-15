@@ -9,7 +9,31 @@ services:
       # The directory, not the file: Hermes replaces the file on every save,
       # and a single-file mount would keep showing the old version.
       - "${DATA_DIR:?Set DATA_DIR in .env}:/srv/data:ro"
+      # gewichtsdaten.json of the optional Withings service; empty without it.
+      - weight-data:/srv/weight:ro
     read_only: true
     tmpfs:
       - /config
       - /data
+
+  # Optional: start with `docker compose --profile withings up -d --build`.
+  withings:
+    build:
+      context: .
+      dockerfile: withings/Dockerfile
+    image: fitness-dash-withings:local
+    profiles: [withings]
+    restart: unless-stopped
+    environment:
+      WITHINGS_CLIENT_ID: ${WITHINGS_CLIENT_ID:-}
+      WITHINGS_CLIENT_SECRET: ${WITHINGS_CLIENT_SECRET:-}
+      WITHINGS_REDIRECT_URI: ${WITHINGS_REDIRECT_URI:-}
+    volumes:
+      - withings-state:/state
+      - weight-data:/out
+    read_only: true
+
+volumes:
+  # Tokens of the connected Withings account.
+  withings-state:
+  weight-data:
