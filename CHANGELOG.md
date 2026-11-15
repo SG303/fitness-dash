@@ -6,6 +6,18 @@ project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-15
+
+### Added
+
+- Muscle map: a page of its own ("Muskelkarte" at the top of the start page)
+  with a front and back figure coloured by sets per week and muscle group over
+  the last 4, 8 or 12 weeks, details per muscle with the exercises behind the
+  number, and a list of all muscle groups from least to most trained.
+  Exercises that are not assigned to any muscle yet are named.
+- The start page names the three least trained muscle groups of the last four
+  weeks and links to the muscle map.
+
 ## [0.2.0] - 2026-11-15
 
 ### Added
@@ -37,6 +49,7 @@ project uses [Semantic Versioning](https://semver.org/).
 - The app is now called "Fitness-Dash" (headline, browser tab and installed
   app).
 
-[Unreleased]: https://github.com/SG303/fitness-dash/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/SG303/fitness-dash/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/SG303/fitness-dash/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/SG303/fitness-dash/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/SG303/fitness-dash/releases/tag/v0.1.0

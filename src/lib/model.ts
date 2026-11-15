@@ -11,6 +11,81 @@ export const STALL_SESSIONS = 4;
 export const VOLUME_WEEKS = 12;
 /** The average duration covers this many of the latest workouts with a known duration. */
 export const DURATION_WORKOUTS = 8;
+/** Muscle map periods in weeks; the first is the default and the period of the teaser on the start page. */
+export const MUSCLE_PERIODS = [4, 8, 12];
+/** A set counts 1 for each main muscle of the exercise and this much for each secondary muscle. */
+export const SECONDARY_WEIGHT = 0.5;
+/** Colour steps of the muscle map: upper bounds in sets per week (exclusive). 0 sets is its own state. */
+export const LOAD_STEPS = [2, 4, 6, 8];
+
+export type MuscleId =
+  | 'chest'
+  | 'front_delts'
+  | 'side_delts'
+  | 'rear_delts'
+  | 'biceps'
+  | 'triceps'
+  | 'forearms'
+  | 'lats'
+  | 'upper_back'
+  | 'lower_back'
+  | 'abs'
+  | 'obliques'
+  | 'glutes'
+  | 'quads'
+  | 'hamstrings'
+  | 'adductors'
+  | 'calves';
+
+/** Muscle groups of the muscle map: name and an optional explanation. */
+export const MUSCLES: Record<MuscleId, { name: string; aka?: string }> = {
+  chest: { name: 'Brust' },
+  front_delts: { name: 'Vordere Schulter' },
+  side_delts: { name: 'Seitliche Schulter' },
+  rear_delts: { name: 'Hintere Schulter' },
+  biceps: { name: 'Bizeps' },
+  triceps: { name: 'Trizeps' },
+  forearms: { name: 'Unterarme' },
+  lats: { name: 'Latissimus', aka: 'Breiter Rückenmuskel' },
+  upper_back: { name: 'Oberer Rücken', aka: 'Trapez und Rautenmuskeln' },
+  lower_back: { name: 'Unterer Rücken', aka: 'Rückenstrecker' },
+  abs: { name: 'Bauch', aka: 'Gerader Bauchmuskel' },
+  obliques: { name: 'Seitlicher Bauch', aka: 'Schräge Bauchmuskeln' },
+  glutes: { name: 'Gesäss' },
+  quads: { name: 'Quadrizeps', aka: 'Oberschenkel vorne' },
+  hamstrings: { name: 'Beinbeuger', aka: 'Oberschenkel hinten' },
+  adductors: { name: 'Adduktoren', aka: 'Oberschenkel innen' },
+  calves: { name: 'Waden' },
+};
+
+/**
+ * Which muscles each exercise trains, by exercise_id. Add a line when Hermes logs a new
+ * exercise; until then the muscle map names it as not assigned and leaves it out.
+ */
+export const EXERCISE_MUSCLES: Record<string, { main: MuscleId[]; secondary: MuscleId[] }> = {
+  incline_chest_press:          { main: ['chest'],              secondary: ['front_delts', 'triceps'] },
+  lat_pulldown:                 { main: ['lats'],               secondary: ['biceps', 'forearms', 'upper_back'] },
+  leg_press:                    { main: ['quads', 'glutes'],    secondary: ['hamstrings', 'adductors'] },
+  seated_leg_curl:              { main: ['hamstrings'],         secondary: ['calves'] },
+  lateral_raise:                { main: ['side_delts'],         secondary: ['upper_back'] },
+  shoulder_press_machine_p5:    { main: ['front_delts'],        secondary: ['side_delts', 'triceps'] },
+  triceps_pushdown:             { main: ['triceps'],            secondary: [] },
+  triceps_pushdown_rope:        { main: ['triceps'],            secondary: [] },
+  core_rotation:                { main: ['obliques'],           secondary: ['abs'] },
+  seated_row:                   { main: ['upper_back', 'lats'], secondary: ['biceps', 'rear_delts'] },
+  rowing:                       { main: ['upper_back', 'lats'], secondary: ['biceps', 'rear_delts'] },
+  pec_fly:                      { main: ['chest'],              secondary: ['front_delts'] },
+  butterfly:                    { main: ['chest'],              secondary: ['front_delts'] },
+  leg_extension:                { main: ['quads'],              secondary: [] },
+  hip_thrust:                   { main: ['glutes'],             secondary: ['hamstrings'] },
+  reverse_fly:                  { main: ['rear_delts'],         secondary: ['upper_back'] },
+  butterfly_reverse_horizontal: { main: ['rear_delts'],         secondary: ['upper_back'] },
+  biceps_curl:                  { main: ['biceps'],             secondary: ['forearms'] },
+  hammer_curl:                  { main: ['biceps', 'forearms'], secondary: [] },
+  hammer_curl_rope:             { main: ['biceps', 'forearms'], secondary: [] },
+  reverse_curl_fixed_barbell:   { main: ['forearms'],           secondary: ['biceps'] },
+  deadhang:                     { main: ['forearms'],           secondary: ['lats'] },
+};
 
 export type Unit = 'kg' | 's' | 'reps';
 
@@ -96,6 +171,42 @@ export interface Model {
   weeks: WeekVolume[];
   exercises: Exercise[];
   next: NextWorkout | null;
+}
+
+export interface MuscleExercise {
+  id: string;
+  name: string;
+  /** Main muscle of the exercise; otherwise a secondary muscle. */
+  main: boolean;
+  /** Sets done in the period, not weighted. */
+  sets: number;
+}
+
+export interface MuscleLoad {
+  id: MuscleId;
+  name: string;
+  aka: string | null;
+  /** Weighted sets in the period. */
+  sets: number;
+  perWeek: number;
+  /** 0 = not trained, 1 … LOAD_STEPS.length + 1 = colour step. */
+  step: number;
+  /** Date of the last workout that trained the muscle, also before the period. */
+  last: string | null;
+  /** Exercises that trained the muscle in the period, main muscle first. */
+  exercises: MuscleExercise[];
+  /** Other logged exercises that train the muscle but were not done in the period. */
+  others: string[];
+}
+
+export interface MuscleMap {
+  weeks: number;
+  start: string;
+  end: string;
+  /** Least trained first. */
+  muscles: MuscleLoad[];
+  /** Logged exercises without an entry in EXERCISE_MUSCLES. */
+  unmapped: { id: string; name: string }[];
 }
 
 export class DataError extends Error {}
@@ -366,4 +477,77 @@ export function buildModel(data: RawData, today: string): Model {
     exercises,
     next: buildNext(workouts, exercises, data),
   };
+}
+
+/** Sets of an entry; sets reported per side count once ("2 × 12 pro Seite" is two sets). */
+export function setCount(sets: RawSet[]): number {
+  const perSide = new Map<string, number>();
+  for (const s of sets) perSide.set(s.side ?? '', (perSide.get(s.side ?? '') ?? 0) + 1);
+  return Math.max(0, ...perSide.values());
+}
+
+export function loadStep(perWeek: number): number {
+  if (perWeek <= 0) return 0;
+  const i = LOAD_STEPS.findIndex((bound) => perWeek < bound);
+  return i === -1 ? LOAD_STEPS.length + 1 : i + 1;
+}
+
+function trains(exerciseId: string, muscle: MuscleId): boolean {
+  const muscles = EXERCISE_MUSCLES[exerciseId];
+  return !!muscles && (muscles.main.includes(muscle) || muscles.secondary.includes(muscle));
+}
+
+/** Sets per week per muscle group over the last `weeks` × 7 days up to today. */
+export function buildMuscleMap(model: Model, weeks: number): MuscleMap {
+  const start = addDays(model.today, 1 - 7 * weeks);
+  const names = new Map(model.exercises.map((e) => [e.id, e.name]));
+  const loads = new Map<MuscleId, MuscleLoad & { byExercise: Map<string, MuscleExercise> }>();
+  for (const [id, info] of Object.entries(MUSCLES) as [MuscleId, (typeof MUSCLES)[MuscleId]][]) {
+    const empty = { sets: 0, perWeek: 0, step: 0, last: null, exercises: [], others: [], byExercise: new Map() };
+    loads.set(id, { id, name: info.name, aka: info.aka ?? null, ...empty });
+  }
+
+  for (const workout of model.workouts) {
+    for (const entry of workout.entries) {
+      const muscles = EXERCISE_MUSCLES[entry.exercise_id];
+      const count = setCount(entry.sets);
+      if (!muscles || count === 0) continue;
+      const roles = [
+        ...muscles.main.map((m) => [m, true] as const),
+        ...muscles.secondary.map((m) => [m, false] as const),
+      ];
+      for (const [muscle, main] of roles) {
+        const load = loads.get(muscle)!;
+        if (load.last === null || workout.date > load.last) load.last = workout.date;
+        if (workout.date < start) continue;
+        load.sets += main ? count : count * SECONDARY_WEIGHT;
+        const id = entry.exercise_id;
+        const exercise = load.byExercise.get(id) ?? { id, name: names.get(id) ?? id, main, sets: 0 };
+        exercise.sets += count;
+        load.byExercise.set(id, exercise);
+      }
+    }
+  }
+
+  const muscles: MuscleLoad[] = [...loads.values()].map(({ byExercise, ...load }) => {
+    const perWeek = load.sets / weeks;
+    const others = model.exercises.filter((e) => !byExercise.has(e.id) && trains(e.id, load.id)).map((e) => e.name);
+    const exercises = [...byExercise.values()].sort((a, b) => Number(b.main) - Number(a.main) || b.sets - a.sets);
+    return { ...load, perWeek, step: loadStep(perWeek), exercises, others };
+  });
+  // Least trained first; among equals the one trained longest ago (or never) leads.
+  muscles.sort(
+    (a, b) =>
+      a.perWeek - b.perWeek ||
+      (a.last ?? '').localeCompare(b.last ?? '') ||
+      a.name.localeCompare(b.name, 'de'),
+  );
+
+  const unmapped = model.exercises.filter((e) => !EXERCISE_MUSCLES[e.id]).map((e) => ({ id: e.id, name: e.name }));
+  return { weeks, start, end: model.today, muscles, unmapped };
+}
+
+/** The least trained muscle groups of the default period, for the start page. */
+export function leastTrained(model: Model, count = 3): MuscleLoad[] {
+  return buildMuscleMap(model, MUSCLE_PERIODS[0]).muscles.slice(0, count);
 }

@@ -15,6 +15,11 @@ up to date and shows:
 - progress per exercise: heaviest weight per workout (longest hold for timed
   exercises), new records, a hint when an exercise has not improved for four
   workouts, and a goal line when a note names a weight ("Nächstes Mal 20 kg").
+- a muscle map on its own page (`#muskelkarte`, so it can be bookmarked):
+  front and back figure coloured by sets per week and muscle group over the
+  last 4, 8 or 12 weeks, details per muscle, and a list of all groups from
+  least to most trained. The start page names the three least trained groups
+  of the last four weeks.
 
 The dashboard only reads. All numbers are computed in the browser from the
 JSON file; there is no database and no backend code.
@@ -78,6 +83,25 @@ The app reads `schema_version` 1 of `trainingsdaten.json`:
 - `exercise_comments{}`: the current note per exercise.
 
 Entries without a `workout_date` are ignored. Weights are used as reported.
+
+### Muscle map
+
+The file does not say which muscles an exercise trains. That lives in the
+table `EXERCISE_MUSCLES` at the top of `src/lib/model.ts`, keyed by
+`exercise_id`, with main and secondary muscles. A set counts 1 for a main
+muscle and 0.5 for a secondary one; sets reported per side count once; skipped
+entries do not count. The period is the last 4, 8 or 12 × 7 days up to today.
+
+When Hermes logs an exercise that is not in the table, the muscle map names it
+as not assigned and leaves it out of the numbers. Add a line to the table to
+include it.
+
+## Credits
+
+The body figure of the muscle map uses path data from
+[react-native-body-highlighter](https://github.com/HichamELBSI/react-native-body-highlighter)
+by ELABBASSI Hicham, MIT License. The full notice is in
+`src/lib/body-art.ts`.
 
 ## Status
 
