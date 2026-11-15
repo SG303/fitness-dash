@@ -6,6 +6,8 @@ project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-11-15
+
 ### Added
 
 - Mobile-first dashboard for the training log that Hermes writes to
@@ -27,3 +29,6 @@ project uses [Semantic Versioning](https://semver.org/).
   workout.
 - The app is now called "Fitness-Dash" (headline, browser tab and installed
   app).
+
+[Unreleased]: https://github.com/SG303/fitness-dash/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/SG303/fitness-dash/releases/tag/v0.1.0
