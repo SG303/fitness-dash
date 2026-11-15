@@ -26,6 +26,8 @@ export interface RawSession {
   plan: string | null;
   workout_date: string | null;
   status: string;
+  /** Time from the start to the end report, breaks included; null while unknown. */
+  duration_seconds?: number | null;
 }
 
 export interface RawComment {

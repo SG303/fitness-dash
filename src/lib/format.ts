@@ -49,6 +49,11 @@ export function formatChange(change: number, unit: Unit): string {
   return `${sign}${formatNumber(Math.abs(change))} ${UNIT_LABEL[unit]}`;
 }
 
+/** Whole minutes, without unit. */
+export function formatMinutes(seconds: number): string {
+  return whole.format(Math.round(seconds / 60));
+}
+
 export function formatTimestamp(iso: string, timeZone: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '';

@@ -7,7 +7,9 @@ A small, mobile-first dashboard for a personal gym log. It reads the
 up to date and shows:
 
 - a calendar of training days for the last 12 months, with the details of each workout,
-- workouts this month, weeks in a row with two workouts, and volume this week,
+- the duration of each workout, if Hermes knows it,
+- workouts this month, weeks in a row with two workouts, volume this week, and
+  the average duration of the last eight workouts with a known duration,
 - the next workout (A/B alternate) with the last weights and notes per exercise,
 - volume per week (weight × reps of all sets) for the last 12 weeks,
 - progress per exercise: heaviest weight per workout (longest hold for timed
@@ -70,7 +72,9 @@ The app reads `schema_version` 1 of `trainingsdaten.json`:
   `entry_type` `reported_performance` or `reported_skip`, `workout_date`,
   `session_id`, `plan`, `exercise_id`, `exercise_name`, `plan_position` and
   `sets[]` (`reps`, `weight_kg`, `duration_seconds`, `side`).
-- `sessions{}`: workout date, plan and status per session.
+- `sessions{}`: workout date, plan, status and `duration_seconds` per session
+  (null when the start or end was not reported; such workouts are left out of
+  the average).
 - `exercise_comments{}`: the current note per exercise.
 
 Entries without a `workout_date` are ignored. Weights are used as reported.
