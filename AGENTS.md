@@ -20,7 +20,16 @@ personal data; English for everything in the repo; talk to me in German.
 
 ## Release
 
-No releases yet; the container is built locally with `docker compose`.
+The container is built locally with `docker compose`; releases are
+versioned GitHub releases without build artifacts.
+
+1. In a PR: set `version` in `package.json` (run `npm install
+   --package-lock-only` to sync the lockfile) and move `## [Unreleased]` in
+   CHANGELOG.md to `## [X.Y.Z] - YYYY-MM-DD`, with compare links at the bottom.
+2. After the merge, tag the merge commit on `main` with `vX.Y.Z` and push the
+   tag. `release.yml` runs the checks and creates the GitHub release with the CHANGELOG
+   section as notes. It fails if the tag, `package.json` and CHANGELOG
+   disagree. Never move or reuse a tag.
 
 ## Conventions
 
