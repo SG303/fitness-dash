@@ -6,6 +6,13 @@ project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Optional Withings service (`docker compose --profile withings`): connect a
+  Withings account once on `/withings/`, then your weight is fetched every
+  15 minutes into `gewichtsdaten.json`. Measurements the scale could not
+  surely assign to you are left out.
+
 ## [0.3.0] - 2026-11-15
 
 ### Added

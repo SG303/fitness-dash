@@ -36,5 +36,5 @@ export default defineConfig({
   plugins: [svelte(), trainingData()],
   server: { port: 5173 },
   preview: { port: 4173 },
-  test: { include: ['src/**/*.test.ts'] },
+  test: { include: ['src/**/*.test.ts', 'withings/**/*.test.ts'] },
 });

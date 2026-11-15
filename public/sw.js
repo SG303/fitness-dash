@@ -1,6 +1,7 @@
 // Keeps the app shell (page, scripts, styles, fonts, icons) available offline.
 // Training data is not handled here: the app keeps the last good file itself.
-const CACHE = 'fitness-dash-v1';
+// Neither are the pages of the optional Withings service.
+const CACHE = 'fitness-dash-v2';
 const NETWORK_TIMEOUT_MS = 4000;
 
 // Cache the page and the files it links, so the app also starts offline after the first visit.
@@ -61,6 +62,13 @@ async function cacheFirst(request) {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
-  if (request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.startsWith('/data/')) return;
+  // /withings/ belongs to the sync service: its redirects to Withings must reach the browser untouched.
+  if (
+    request.method !== 'GET' ||
+    url.origin !== self.location.origin ||
+    url.pathname.startsWith('/data/') ||
+    url.pathname.startsWith('/withings')
+  )
+    return;
   event.respondWith(url.pathname.startsWith('/assets/') ? cacheFirst(request) : networkFirst(request));
 });
