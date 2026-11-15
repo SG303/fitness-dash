@@ -44,14 +44,21 @@ versioned GitHub releases without build artifacts.
   writes the first one.
 - Rules with tuning knobs are constants at the top of `model.ts`
   (`PLAN_ROTATION`, `WEEKLY_TARGET`, `STALL_SESSIONS`, `VOLUME_WEEKS`,
-  `DURATION_WORKOUTS`, `MUSCLE_PERIODS`, `SECONDARY_WEIGHT`, `LOAD_STEPS`).
+  `DURATION_WORKOUTS`, `MUSCLE_PERIODS`, `SECONDARY_WEIGHT`, `LOAD_STEPS`,
+  `WEIGHT_PERIODS`, `WEIGHT_DEFAULT_PERIOD`, `WEIGHT_TEASER_WEEKS`,
+  `TREND_HALF_LIFE`, `TREND_GAP_DAYS`).
 - The exercise → muscle mapping is `EXERCISE_MUSCLES` in `model.ts`, keyed by
   `exercise_id`; muscle groups and their German names are `MUSCLES`. When
   Hermes logs a new exercise, add it there (the muscle map names unmapped
   exercises). Hermes and `trainingsdaten.json` know nothing about muscles.
-- Navigation has no router: the muscle map is the page at `#muskelkarte`
-  (`App.svelte` switches on the hash). Keep it in the main bundle, no lazy
-  chunk, so the service worker caches it for offline use.
+- Navigation has no router: the muscle map is the page at `#muskelkarte`,
+  the weight the page at `#gewicht` (`App.svelte` switches on the hash). Keep
+  them in the main bundle, no lazy chunk, so the service worker caches them
+  for offline use.
+- The weight is independent of the training data: `App.svelte` loads
+  `gewichtsdaten.json` on its own, caches it on its own and hides everything
+  about weight when the file is missing (404). Errors of one file never
+  affect the other.
 - The body figure in `src/lib/body-art.ts` is path data from
   react-native-body-highlighter (MIT); keep its licence header. The step
   colours `--load-1` … `--load-5` and the figure colours `--fig-*` in

@@ -56,3 +56,8 @@ export function nextMonthStart(date: string): string {
   const [y, m] = date.split('-').map(Number);
   return m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, '0')}-01`;
 }
+
+/** January 1 of the year after the given date. */
+export function nextYearStart(date: string): string {
+  return `${Number(date.slice(0, 4)) + 1}-01-01`;
+}

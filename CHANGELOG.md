@@ -6,12 +6,19 @@ project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-15
+
 ### Added
 
 - Optional Withings service (`docker compose --profile withings`): connect a
   Withings account once on `/withings/`, then your weight is fetched every
   15 minutes into `gewichtsdaten.json`. Measurements the scale could not
   surely assign to you are left out.
+- Weight page (`#gewicht`, linked from the start page) when the Withings
+  service runs: each measurement as a dot, a trend line smoothed over about a
+  week, and the workouts per week on the same time axis, for 4 or 12 weeks, a
+  year or everything, with a table view. The start page shows the current
+  trend and its change over four weeks.
 
 ## [0.3.0] - 2026-11-15
 
@@ -56,7 +63,8 @@ project uses [Semantic Versioning](https://semver.org/).
 - The app is now called "Fitness-Dash" (headline, browser tab and installed
   app).
 
-[Unreleased]: https://github.com/SG303/fitness-dash/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/SG303/fitness-dash/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/SG303/fitness-dash/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/SG303/fitness-dash/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/SG303/fitness-dash/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/SG303/fitness-dash/releases/tag/v0.1.0
