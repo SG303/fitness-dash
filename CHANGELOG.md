@@ -6,6 +6,13 @@ project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-15
+
+### Added
+
+- Each workout shows its duration, and the key figures show the average
+  duration of the last eight workouts with a known duration.
+
 ## [0.1.0] - 2026-11-15
 
 ### Added
@@ -30,5 +37,6 @@ project uses [Semantic Versioning](https://semver.org/).
 - The app is now called "Fitness-Dash" (headline, browser tab and installed
   app).
 
-[Unreleased]: https://github.com/SG303/fitness-dash/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/SG303/fitness-dash/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/SG303/fitness-dash/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/SG303/fitness-dash/releases/tag/v0.1.0

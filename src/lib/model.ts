@@ -9,6 +9,8 @@ export const WEEKLY_TARGET = 2;
 export const STALL_SESSIONS = 4;
 /** Number of weeks in the volume chart. */
 export const VOLUME_WEEKS = 12;
+/** The average duration covers this many of the latest workouts with a known duration. */
+export const DURATION_WORKOUTS = 8;
 
 export type Unit = 'kg' | 's' | 'reps';
 
@@ -21,6 +23,8 @@ export interface Workout {
   skipped: RawEntry[];
   /** Sum of weight × reps over all sets. */
   volume: number;
+  /** Seconds from start to end as reported to Hermes; null when unknown. */
+  duration: number | null;
 }
 
 export interface ExercisePoint {
@@ -85,6 +89,10 @@ export interface Model {
   monthWorkouts: number;
   weekStreak: number;
   weekVolume: number;
+  /** Average seconds over the last DURATION_WORKOUTS workouts with a known duration. */
+  averageDuration: number | null;
+  /** Number of workouts the average is based on. */
+  durationWorkouts: number;
   weeks: WeekVolume[];
   exercises: Exercise[];
   next: NextWorkout | null;
@@ -185,7 +193,9 @@ function groupWorkouts(data: RawData): Workout[] {
     const id = entry.session_id ?? `${date}-${entry.plan ?? ''}`;
     let workout = groups.get(id);
     if (!workout) {
-      workout = { id, date, plan: session?.plan ?? entry.plan, entries: [], skipped: [], volume: 0 };
+      const seconds = session?.duration_seconds;
+      const duration = typeof seconds === 'number' && Number.isFinite(seconds) && seconds >= 0 ? seconds : null;
+      workout = { id, date, plan: session?.plan ?? entry.plan, entries: [], skipped: [], volume: 0, duration };
       groups.set(id, workout);
     }
     if (entry.entry_type === 'reported_performance') {
@@ -321,6 +331,15 @@ function buildWeeks(workouts: Workout[], today: string): WeekVolume[] {
   return weeks;
 }
 
+function averageDuration(workouts: Workout[]): { average: number | null; count: number } {
+  const durations = workouts
+    .map((w) => w.duration)
+    .filter((d) => d !== null)
+    .slice(-DURATION_WORKOUTS);
+  if (durations.length === 0) return { average: null, count: 0 };
+  return { average: durations.reduce((a, b) => a + b, 0) / durations.length, count: durations.length };
+}
+
 export function buildModel(data: RawData, today: string): Model {
   const workouts = groupWorkouts(data).filter((w) => w.date <= today);
   const workoutsByDate = new Map<string, Workout[]>();
@@ -328,6 +347,7 @@ export function buildModel(data: RawData, today: string): Model {
   const lastWorkout = workouts[workouts.length - 1] ?? null;
   const exercises = buildExercises(workouts, data);
   const weeks = buildWeeks(workouts, today);
+  const duration = averageDuration(workouts);
 
   return {
     today,
@@ -340,6 +360,8 @@ export function buildModel(data: RawData, today: string): Model {
     monthWorkouts: workouts.filter((w) => w.date.startsWith(today.slice(0, 7))).length,
     weekStreak: countWeekStreak(workouts, today),
     weekVolume: weeks[weeks.length - 1].volume,
+    averageDuration: duration.average,
+    durationWorkouts: duration.count,
     weeks,
     exercises,
     next: buildNext(workouts, exercises, data),

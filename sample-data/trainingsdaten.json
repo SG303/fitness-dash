@@ -525,7 +525,8 @@
         "gym-b-2026-10-01-hammer_curl-001",
         "gym-b-2026-10-01-deadhang-001"
       ],
-      "skipped_entry_ids": []
+      "skipped_entry_ids": [],
+      "duration_seconds": 2977
     },
     "gym-a-2026-10-03": {
       "session_id": "gym-a-2026-10-03",
@@ -542,7 +543,8 @@
       ],
       "skipped_entry_ids": [
         "gym-a-2026-10-03-lat_pulldown-skipped-001"
-      ]
+      ],
+      "duration_seconds": 3171
     },
     "gym-b-2026-10-07": {
       "session_id": "gym-b-2026-10-07",
@@ -559,7 +561,8 @@
       ],
       "skipped_entry_ids": [
         "gym-b-2026-10-07-hammer_curl-skipped-001"
-      ]
+      ],
+      "duration_seconds": 3559
     },
     "gym-a-2026-10-10": {
       "session_id": "gym-a-2026-10-10",
@@ -575,7 +578,8 @@
         "gym-a-2026-10-10-triceps_pushdown-001",
         "gym-a-2026-10-10-core_rotation-001"
       ],
-      "skipped_entry_ids": []
+      "skipped_entry_ids": [],
+      "duration_seconds": 3850
     },
     "gym-b-2026-10-12": {
       "session_id": "gym-b-2026-10-12",
@@ -591,7 +595,8 @@
         "gym-b-2026-10-12-hammer_curl-001",
         "gym-b-2026-10-12-deadhang-001"
       ],
-      "skipped_entry_ids": []
+      "skipped_entry_ids": [],
+      "duration_seconds": 4044
     },
     "gym-a-2026-10-15": {
       "session_id": "gym-a-2026-10-15",
@@ -608,7 +613,8 @@
       ],
       "skipped_entry_ids": [
         "gym-a-2026-10-15-core_rotation-skipped-001"
-      ]
+      ],
+      "duration_seconds": 4335
     },
     "gym-b-2026-10-17": {
       "session_id": "gym-b-2026-10-17",
@@ -624,7 +630,8 @@
         "gym-b-2026-10-17-hammer_curl-001",
         "gym-b-2026-10-17-deadhang-001"
       ],
-      "skipped_entry_ids": []
+      "skipped_entry_ids": [],
+      "duration_seconds": 2969
     },
     "gym-a-2026-10-21": {
       "session_id": "gym-a-2026-10-21",
@@ -640,7 +647,8 @@
         "gym-a-2026-10-21-triceps_pushdown-001",
         "gym-a-2026-10-21-core_rotation-001"
       ],
-      "skipped_entry_ids": []
+      "skipped_entry_ids": [],
+      "duration_seconds": 3357
     },
     "gym-b-2026-10-24": {
       "session_id": "gym-b-2026-10-24",
@@ -657,7 +665,8 @@
       ],
       "skipped_entry_ids": [
         "gym-b-2026-10-24-pec_fly-skipped-001"
-      ]
+      ],
+      "duration_seconds": 3648
     },
     "gym-a-2026-10-26": {
       "session_id": "gym-a-2026-10-26",
@@ -674,7 +683,8 @@
       ],
       "skipped_entry_ids": [
         "gym-a-2026-10-26-leg_press-skipped-001"
-      ]
+      ],
+      "duration_seconds": 3842
     },
     "gym-b-2026-10-29": {
       "session_id": "gym-b-2026-10-29",
@@ -690,7 +700,8 @@
         "gym-b-2026-10-29-hammer_curl-001",
         "gym-b-2026-10-29-deadhang-001"
       ],
-      "skipped_entry_ids": []
+      "skipped_entry_ids": [],
+      "duration_seconds": 4133
     },
     "gym-a-2026-10-31": {
       "session_id": "gym-a-2026-10-31",
@@ -706,7 +717,8 @@
         "gym-a-2026-10-31-triceps_pushdown-001",
         "gym-a-2026-10-31-core_rotation-001"
       ],
-      "skipped_entry_ids": []
+      "skipped_entry_ids": [],
+      "duration_seconds": 4327
     },
     "gym-b-2026-11-04": {
       "session_id": "gym-b-2026-11-04",
@@ -723,7 +735,8 @@
       ],
       "skipped_entry_ids": [
         "gym-b-2026-11-04-hip_thrust-skipped-001"
-      ]
+      ],
+      "duration_seconds": 3268
     },
     "gym-a-2026-11-07": {
       "session_id": "gym-a-2026-11-07",
@@ -740,7 +753,8 @@
       ],
       "skipped_entry_ids": [
         "gym-a-2026-11-07-core_rotation-skipped-001"
-      ]
+      ],
+      "duration_seconds": 3559
     },
     "gym-b-2026-11-09": {
       "session_id": "gym-b-2026-11-09",
@@ -756,7 +770,8 @@
         "gym-b-2026-11-09-hammer_curl-001",
         "gym-b-2026-11-09-deadhang-001"
       ],
-      "skipped_entry_ids": []
+      "skipped_entry_ids": [],
+      "duration_seconds": 3753
     }
   },
   "performance_entries": [

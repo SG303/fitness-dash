@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { isoWeek, nextMonthStart, todayIn, weekStart, weekday } from './dates';
-import { DataError, buildModel, describeSets, parseData, targetFrom } from './model';
+import { DURATION_WORKOUTS, DataError, buildModel, describeSets, parseData, targetFrom } from './model';
 import type { RawData, RawEntry, RawSet } from './types';
 
 const sets = (n: number, reps: number, weight_kg?: number): RawSet[] =>
@@ -190,6 +190,40 @@ describe('buildModel', () => {
     expect(m.monthWorkouts).toBe(3);
     expect(m.weeks).toHaveLength(12);
     expect(m.weeks.at(-1)).toMatchObject({ start: '2026-11-09', workouts: 1, volume: 100 });
+  });
+
+  it('reads the duration per workout and averages the latest known ones', () => {
+    const d = data([
+      entry('2026-11-02', 'A', 'x', sets(1, 10, 10)),
+      entry('2026-11-05', 'B', 'x', sets(1, 10, 10)),
+      entry('2026-11-08', 'A', 'x', sets(1, 10, 10)),
+      entry('2026-11-11', 'B', 'x', sets(1, 10, 10)),
+    ]);
+    d.sessions['gym-A-2026-11-02'].duration_seconds = 3000;
+    d.sessions['gym-B-2026-11-05'].duration_seconds = 3600;
+    // Unknown durations are null and never count as zero.
+    d.sessions['gym-A-2026-11-08'].duration_seconds = null;
+    const m = buildModel(d, '2026-11-11');
+    expect(m.workouts.map((w) => w.duration)).toEqual([3000, 3600, null, null]);
+    expect(m.averageDuration).toBe(3300);
+    expect(m.durationWorkouts).toBe(2);
+  });
+
+  it('averages only the last DURATION_WORKOUTS known durations', () => {
+    const entries = Array.from({ length: DURATION_WORKOUTS + 2 }, (_, i) =>
+      entry(`2026-10-${String(i + 1).padStart(2, '0')}`, 'A', 'x', sets(1, 10, 10)),
+    );
+    const d = data(entries);
+    Object.values(d.sessions).forEach((s, i) => (s.duration_seconds = i < 2 ? 600 : 3600));
+    const m = buildModel(d, '2026-11-11');
+    expect(m.averageDuration).toBe(3600);
+    expect(m.durationWorkouts).toBe(DURATION_WORKOUTS);
+  });
+
+  it('has no average duration without any known duration', () => {
+    const m = buildModel(data([entry('2026-11-11', 'A', 'x', sets(1, 10, 10))]), '2026-11-11');
+    expect(m.averageDuration).toBeNull();
+    expect(m.durationWorkouts).toBe(0);
   });
 
   it('suggests the other plan with its last values and comments', () => {

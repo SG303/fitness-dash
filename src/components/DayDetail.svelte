@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { formatLongDate, formatValue, formatWhole } from '../lib/format';
+  import { formatLongDate, formatMinutes, formatValue, formatWhole } from '../lib/format';
   import type { Model } from '../lib/model';
 
   let { model, date, onpick }: { model: Model; date: string; onpick: (date: string) => void } = $props();
@@ -52,8 +52,11 @@
         </li>
       {/each}
     </ul>
-    {#if workout.volume > 0}
-      <p class="total">Volumen {formatWhole(workout.volume)} kg</p>
+    {#if workout.duration !== null || workout.volume > 0}
+      <p class="total">
+        {#if workout.duration !== null}<span>Dauer {formatMinutes(workout.duration)} min</span>{/if}
+        {#if workout.volume > 0}<span class="volume">Volumen {formatWhole(workout.volume)} kg</span>{/if}
+      </p>
     {/if}
   {/each}
 </div>
@@ -157,11 +160,18 @@
   }
 
   .total {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
     margin-top: 0.5rem;
     padding-top: 0.6rem;
     border-top: 1px solid var(--rule);
     color: var(--ink-2);
     font-size: var(--step--1);
-    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .volume {
+    margin-left: auto;
   }
 </style>
