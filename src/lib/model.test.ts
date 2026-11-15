@@ -6,14 +6,17 @@ import {
   MUSCLES,
   buildModel,
   buildMuscleMap,
+  buildWeight,
   describeSets,
   leastTrained,
   loadStep,
   parseData,
+  parseWeightData,
   targetFrom,
+  weightPeriod,
   type MuscleId,
 } from './model';
-import type { RawData, RawEntry, RawSet } from './types';
+import type { RawData, RawEntry, RawMeasurement, RawSet } from './types';
 
 const sets = (n: number, reps: number, weight_kg?: number): RawSet[] =>
   Array.from({ length: n }, (_, i) => ({ set_number: i + 1, reps, weight_kg }));
@@ -397,5 +400,76 @@ describe('muscle map', () => {
 
   it('maps sets per week to colour steps', () => {
     expect([0, 0.5, 1.99, 2, 4, 7.9, 8, 20].map(loadStep)).toEqual([0, 1, 1, 2, 3, 4, 5, 5]);
+  });
+});
+
+describe('weight', () => {
+  const today = '2026-11-15';
+  const m = (date: string, weight_kg: number, time = '07:00'): RawMeasurement => ({
+    date,
+    measured_at: `${date}T${time}:00Z`,
+    weight_kg,
+  });
+  const weight = (measurements: RawMeasurement[]) =>
+    buildWeight({ schema_version: 1, updated_at: '', timezone: 'Europe/Zurich', measurements }, today);
+
+  it('rejects an unknown format', () => {
+    expect(() => parseWeightData({ schema_version: 2, measurements: [] })).toThrow(DataError);
+    expect(() => parseWeightData({ schema_version: 1 })).toThrow(DataError);
+    expect(parseWeightData({ schema_version: 1, measurements: [] }).timezone).toBe('Europe/Zurich');
+  });
+
+  it('takes the first measurement of a day and ignores the future', () => {
+    const w = weight([m('2026-11-10', 81, '19:00'), m('2026-11-10', 80, '06:30'), m('2026-11-16', 70)]);
+    expect(w.measurements).toHaveLength(2);
+    expect(w.days).toEqual([{ date: '2026-11-10', weight: 80, trend: 80, restart: true }]);
+  });
+
+  it('smooths by the time between measurements', () => {
+    // After one half-life the trend has moved halfway to the new value.
+    const w = weight([m('2026-11-01', 80), m('2026-11-08', 82)]);
+    expect(w.days[1].trend).toBeCloseTo(81);
+    const daily = weight([m('2026-11-01', 80), m('2026-11-02', 82)]);
+    expect(daily.days[1].trend).toBeGreaterThan(80);
+    expect(daily.days[1].trend).toBeLessThan(80.3);
+  });
+
+  it('starts the trend anew after a long pause', () => {
+    const w = weight([m('2026-08-01', 90), m('2026-08-30', 80)]);
+    expect(w.days[1]).toMatchObject({ trend: 80, restart: true });
+  });
+
+  it('builds whole weeks with averages, workouts and the trend change', () => {
+    const w = weight([m('2026-10-01', 85), m('2026-10-27', 84), m('2026-10-29', 82), m('2026-11-12', 81)]);
+    const p = weightPeriod(w, 4, ['2026-10-20', '2026-10-28', '2026-10-28', '2026-11-14']);
+    expect(p.start).toBe('2026-10-19');
+    expect(p.days.map((d) => d.date)).toEqual(['2026-10-27', '2026-10-29', '2026-11-12']);
+    expect(p.change).toBeCloseTo(p.days[2].trend - p.days[0].trend);
+    expect(p.rows).toEqual([
+      { start: '2026-10-19', week: 43, average: null, measurements: 0, workouts: 1 },
+      { start: '2026-10-26', week: 44, average: 83, measurements: 2, workouts: 2 },
+      { start: '2026-11-02', week: 45, average: null, measurements: 0, workouts: 0 },
+      { start: '2026-11-09', week: 46, average: 81, measurements: 1, workouts: 1 },
+    ]);
+  });
+
+  it('leaves weeks before the first logged workout without a count', () => {
+    const w = weight([m('2026-10-27', 84)]);
+    const p = weightPeriod(w, 4, ['2026-11-11']);
+    expect(p.rows.map((r) => r.workouts)).toEqual([null, null, null, 1]);
+  });
+
+  it('covers the whole history and works without training data', () => {
+    const w = weight([m('2026-10-01', 85), m('2026-11-12', 81)]);
+    const p = weightPeriod(w, null, null);
+    expect(p.start).toBe('2026-09-28');
+    expect(p.rows).toHaveLength(7);
+    expect(p.rows[0].workouts).toBeNull();
+    expect(p.change).toBe(-4);
+  });
+
+  it('has no change with fewer than two days', () => {
+    expect(weightPeriod(weight([]), 4, []).change).toBeNull();
+    expect(weightPeriod(weight([m('2026-11-12', 81)]), 4, []).change).toBeNull();
   });
 });

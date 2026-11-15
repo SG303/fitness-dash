@@ -44,3 +44,20 @@ export interface RawData {
   performance_entries: RawEntry[];
   exercise_comments: Record<string, RawComment>;
 }
+
+/** Shape of gewichtsdaten.json as written by the optional Withings service (schema_version 1). */
+export interface RawWeightData {
+  schema_version: number;
+  /** Time of the last successful sync with Withings. */
+  updated_at: string;
+  timezone: string;
+  /** Oldest first. */
+  measurements: RawMeasurement[];
+}
+
+export interface RawMeasurement {
+  measured_at: string;
+  /** Local calendar date, "YYYY-MM-DD". */
+  date: string;
+  weight_kg: number;
+}

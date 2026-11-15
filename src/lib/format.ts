@@ -3,6 +3,7 @@ import type { Unit } from './model';
 const LOCALE = 'de-CH';
 
 const number = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 1 });
+const tenths = new Intl.NumberFormat(LOCALE, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const whole = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 0 });
 const compact = new Intl.NumberFormat(LOCALE, { notation: 'compact', maximumFractionDigits: 1 });
 
@@ -24,6 +25,18 @@ export const formatFullDate = dateFormat({ day: 'numeric', month: 'numeric', yea
 
 export function formatNumber(value: number): string {
   return number.format(value);
+}
+
+/** Body weight: always one decimal, so 61.0 and 61.3 line up. */
+export function formatKg(value: number): string {
+  return tenths.format(value);
+}
+
+/** Signed change in kg with one decimal, without unit. */
+export function formatKgChange(change: number): string {
+  const rounded = Math.round(change * 10) / 10;
+  const sign = rounded > 0 ? '+' : rounded < 0 ? '−' : '±';
+  return `${sign}${tenths.format(Math.abs(rounded))}`;
 }
 
 export function formatWhole(value: number): string {

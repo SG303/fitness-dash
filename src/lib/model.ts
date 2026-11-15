@@ -1,5 +1,5 @@
 import { daysBetween, isoWeek, addDays, weekStart } from './dates';
-import type { RawData, RawEntry, RawSet } from './types';
+import type { RawData, RawEntry, RawSet, RawWeightData } from './types';
 
 /** Training A and B alternate. */
 export const PLAN_ROTATION = ['A', 'B'];
@@ -17,6 +17,16 @@ export const MUSCLE_PERIODS = [4, 8, 12];
 export const SECONDARY_WEIGHT = 0.5;
 /** Colour steps of the muscle map: upper bounds in sets per week (exclusive). 0 sets is its own state. */
 export const LOAD_STEPS = [2, 4, 6, 8];
+/** Periods of the weight page in weeks, the current week included; null is the whole history. */
+export const WEIGHT_PERIODS: (number | null)[] = [4, 12, 52, null];
+/** Period the weight page opens with. */
+export const WEIGHT_DEFAULT_PERIOD = 12;
+/** Period of the weight teaser on the start page. */
+export const WEIGHT_TEASER_WEEKS = 4;
+/** Half-life of the weight trend in days: an older measurement weighs half as much after this many days. */
+export const TREND_HALF_LIFE = 7;
+/** A pause longer than this many days between measurements starts the trend anew. */
+export const TREND_GAP_DAYS = 28;
 
 export type MuscleId =
   | 'chest'
@@ -550,4 +560,121 @@ export function buildMuscleMap(model: Model, weeks: number): MuscleMap {
 /** The least trained muscle groups of the default period, for the start page. */
 export function leastTrained(model: Model, count = 3): MuscleLoad[] {
   return buildMuscleMap(model, MUSCLE_PERIODS[0]).muscles.slice(0, count);
+}
+
+export interface WeightMeasurement {
+  date: string;
+  measuredAt: string;
+  weight: number;
+}
+
+/** The first measurement of a day, with the smoothed trend up to that day. */
+export interface WeightDay {
+  date: string;
+  weight: number;
+  trend: number;
+  /** First day after a long pause (or the very first): the trend starts anew here. */
+  restart: boolean;
+}
+
+export interface WeightModel {
+  today: string;
+  updatedAt: string;
+  timeZone: string;
+  /** All measurements, oldest first. */
+  measurements: WeightMeasurement[];
+  days: WeightDay[];
+}
+
+export interface WeightWeek {
+  start: string;
+  week: number;
+  /** Average of the daily values; null without a measurement. */
+  average: number | null;
+  measurements: number;
+  /** Null without training data, or for weeks before the first logged workout. */
+  workouts: number | null;
+}
+
+export interface WeightPeriod {
+  weeks: number | null;
+  /** Monday of the first week. */
+  start: string;
+  end: string;
+  measurements: WeightMeasurement[];
+  days: WeightDay[];
+  /** Trend at the last minus the first measured day of the period; null with fewer than two days. */
+  change: number | null;
+  rows: WeightWeek[];
+}
+
+/** Checks the parts of gewichtsdaten.json the dashboard depends on. */
+export function parseWeightData(json: unknown): RawWeightData {
+  const data = (typeof json === 'object' && json !== null ? json : {}) as Partial<RawWeightData>;
+  if (data.schema_version !== 1 || !Array.isArray(data.measurements)) {
+    throw new DataError('gewichtsdaten.json hat ein unbekanntes Format.');
+  }
+  return {
+    schema_version: 1,
+    updated_at: data.updated_at ?? '',
+    timezone: data.timezone || 'Europe/Zurich',
+    measurements: data.measurements,
+  };
+}
+
+export function buildWeight(data: RawWeightData, today: string): WeightModel {
+  const measurements = data.measurements
+    .filter((m) => m.date <= today && Number.isFinite(m.weight_kg) && m.weight_kg > 0)
+    .map((m) => ({ date: m.date, measuredAt: m.measured_at, weight: m.weight_kg }))
+    .sort((a, b) => a.measuredAt.localeCompare(b.measuredAt));
+
+  const days: WeightDay[] = [];
+  for (const m of measurements) {
+    const prev = days[days.length - 1];
+    if (prev?.date === m.date) continue;
+    const gap = prev ? daysBetween(prev.date, m.date) : Infinity;
+    const restart = gap > TREND_GAP_DAYS;
+    // Exponential smoothing that respects the time between measurements, so sparse weeks are not overweighted.
+    const trend = restart ? m.weight : prev.trend + (1 - 0.5 ** (gap / TREND_HALF_LIFE)) * (m.weight - prev.trend);
+    days.push({ date: m.date, weight: m.weight, trend, restart });
+  }
+
+  return { today, updatedAt: data.updated_at, timeZone: data.timezone, measurements, days };
+}
+
+/**
+ * The last `weeks` weeks up to today (whole weeks from Monday), or the whole
+ * history for null. `workoutDates` has one entry per workout; null leaves the
+ * workout counts out.
+ */
+export function weightPeriod(model: WeightModel, weeks: number | null, workoutDates: string[] | null): WeightPeriod {
+  const current = weekStart(model.today);
+  const first = model.days[0]?.date ?? model.today;
+  const start = weeks === null ? weekStart(first < model.today ? first : model.today) : addDays(current, -7 * (weeks - 1));
+  const days = model.days.filter((d) => d.date >= start);
+
+  // Weeks before the first logged workout have no known count, which is not the same as none.
+  const logStart = workoutDates?.length ? weekStart(workoutDates.reduce((a, b) => (a < b ? a : b))) : null;
+  const rows: WeightWeek[] = [];
+  for (let week = start; week <= current; week = addDays(week, 7)) {
+    const end = addDays(week, 7);
+    const inWeek = days.filter((d) => d.date >= week && d.date < end);
+    rows.push({
+      start: week,
+      week: isoWeek(week),
+      average: inWeek.length ? inWeek.reduce((sum, d) => sum + d.weight, 0) / inWeek.length : null,
+      measurements: inWeek.length,
+      workouts: workoutDates && logStart !== null && week >= logStart ? workoutDates.filter((d) => d >= week && d < end).length : null,
+    });
+  }
+
+  return {
+    weeks,
+    start,
+    end: model.today,
+    measurements: model.measurements.filter((m) => m.date >= start),
+    days,
+    change: days.length >= 2 ? days[days.length - 1].trend - days[0].trend : null,
+    rows,
+  };
 }

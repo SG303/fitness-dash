@@ -203,23 +203,6 @@
 </section>
 
 <style>
-  .headline {
-    font-size: clamp(2.25rem, 10vw, 3.75rem);
-    font-stretch: 125%;
-    font-weight: 820;
-    line-height: 0.98;
-    letter-spacing: -0.035em;
-  }
-
-  .headline:focus {
-    outline: none;
-  }
-
-  .subline {
-    margin-top: 0.75rem;
-    color: var(--ink-2);
-  }
-
   .unmapped {
     margin-top: 1.25rem;
     padding: 0.75rem 1rem;
@@ -227,37 +210,6 @@
     background: var(--raised);
     color: var(--ink-2);
     font-size: var(--step--1);
-  }
-
-  .period {
-    display: flex;
-    width: max-content;
-    max-width: 100%;
-    margin-top: 1.5rem;
-    padding: 2px;
-    border: 1px solid var(--rule);
-    border-radius: 999px;
-  }
-
-  .period button {
-    min-height: 2.5rem;
-    padding: 0 1rem;
-    border: 0;
-    border-radius: 999px;
-    background: transparent;
-    color: var(--ink-2);
-    font-size: var(--step--1);
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  .period button:hover {
-    color: var(--ink);
-  }
-
-  .period button[aria-pressed='true'] {
-    background: var(--ink);
-    color: var(--bg);
   }
 
   .stage {

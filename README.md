@@ -20,6 +20,11 @@ up to date and shows:
   last 4, 8 or 12 weeks, details per muscle, and a list of all groups from
   least to most trained. The start page names the three least trained groups
   of the last four weeks.
+- with the optional Withings service: body weight on its own page
+  (`#gewicht`): every measurement as a dot, a smoothed trend line and the
+  workouts per week on the same time axis, for 4 or 12 weeks, a year or the
+  whole history. The start page shows the current trend and its change over
+  four weeks.
 
 The dashboard only reads. All numbers are computed in the browser from the
 JSON file; there is no database and no backend code. The only exception is the
@@ -86,16 +91,22 @@ the scale could not assign to one person are left out until you assign them
 to yourself in the Withings app. The tokens stay in the `withings-state`
 volume; Caddy serves only `gewichtsdaten.json` from the service.
 
+The trend uses the first measurement of each day and smooths it with a
+half-life of seven days, weighted by the time between measurements; after more
+than four weeks without a measurement it starts anew. Weeks before the first
+workout Hermes logged have no workout count.
+
 ## Develop
 
 ```sh
 npm ci
 npm run dev             # http://<host>:5173 with sample-data/trainingsdaten.json
 DATA_DIR=/path/to/dir npm run dev   # with real data
+WEIGHT_DIR=/path/to/dir npm run dev # with a real gewichtsdaten.json
 npm test && npm run lint && npm run typecheck && npm run build
 ```
 
-`sample-data/` holds fictional data in the same format.
+`sample-data/` holds fictional data in the same format, for training and weight.
 
 ## Data format
 

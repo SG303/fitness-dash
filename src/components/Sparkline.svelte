@@ -1,8 +1,7 @@
 <script lang="ts">
-  import type { ExercisePoint } from '../lib/model';
   import { linear } from '../lib/scale';
 
-  let { points }: { points: ExercisePoint[] } = $props();
+  let { points }: { points: { value: number }[] } = $props();
 
   const W = 72;
   const H = 28;
