@@ -11,6 +11,20 @@
   --green: light-dark(#1c7f45, #45ba76);
   --warn: light-dark(#875800, #e0a845);
 
+  /* Muscle map: neutral body, and one green ramp from few to many sets per week.
+     Neighbouring steps and step 1 against the body differ by at least 10 ΔE (OKLab) in both themes. */
+  --fig-body: light-dark(#e7eaec, #232528);
+  --fig-line: light-dark(#b9bec4, #484d52);
+  --fig-inert: light-dark(#d7d9dc, #323437);
+  --fig-hair: light-dark(#bcbec0, #414447);
+  --load-1: light-dark(#98daa9, #295c3a);
+  --load-2: light-dark(#5fbd7d, #2d804b);
+  --load-3: light-dark(#2a9e59, #39a461);
+  --load-4: light-dark(#117d42, #55c77c);
+  --load-5: light-dark(#13572e, #98e6ae);
+  /* Ground of the hatching for "not trained"; the stripes use --warn. */
+  --none-fill: light-dark(#f5e9d3, #382d1a);
+
   --font: 'Archivo Variable', system-ui, sans-serif;
   /* Type scale (ratio ~1.25 from 16px). */
   --step--1: 0.8125rem;

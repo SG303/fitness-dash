@@ -1,6 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import { isoWeek, nextMonthStart, todayIn, weekStart, weekday } from './dates';
-import { DURATION_WORKOUTS, DataError, buildModel, describeSets, parseData, targetFrom } from './model';
+import {
+  DURATION_WORKOUTS,
+  DataError,
+  MUSCLES,
+  buildModel,
+  buildMuscleMap,
+  describeSets,
+  leastTrained,
+  loadStep,
+  parseData,
+  targetFrom,
+  type MuscleId,
+} from './model';
 import type { RawData, RawEntry, RawSet } from './types';
 
 const sets = (n: number, reps: number, weight_kg?: number): RawSet[] =>
@@ -268,5 +280,122 @@ describe('nextMonthStart', () => {
   it('rolls over the year', () => {
     expect(nextMonthStart('2026-11-11')).toBe('2026-12-01');
     expect(nextMonthStart('2026-12-31')).toBe('2027-01-01');
+  });
+});
+
+describe('muscle map', () => {
+  // 4 weeks up to 15 Nov are 19 Oct to 15 Nov.
+  const today = '2026-11-15';
+  const load = (m: ReturnType<typeof buildMuscleMap>, id: MuscleId) => m.muscles.find((l) => l.id === id)!;
+
+  it('counts a set 1 for a main and 0.5 for a secondary muscle, per week', () => {
+    const model = buildModel(
+      data([entry('2026-11-10', 'A', 'incline_chest_press', sets(4, 10, 20), { exercise_name: 'Schrägbankdrücken' })]),
+      today,
+    );
+    const map = buildMuscleMap(model, 4);
+    expect(map).toMatchObject({ weeks: 4, start: '2026-10-19', end: today });
+    expect(load(map, 'chest')).toMatchObject({ sets: 4, perWeek: 1, step: 1 });
+    expect(load(map, 'front_delts')).toMatchObject({ sets: 2, perWeek: 0.5 });
+    expect(load(map, 'front_delts').exercises).toEqual([
+      { id: 'incline_chest_press', name: 'Schrägbankdrücken', main: false, sets: 4 },
+    ]);
+    expect(load(map, 'chest').exercises[0].main).toBe(true);
+  });
+
+  it('ignores skipped entries', () => {
+    const model = buildModel(
+      data([
+        entry('2026-11-10', 'A', 'leg_extension', sets(3, 12, 30)),
+        entry('2026-11-10', 'A', 'lat_pulldown', [], { entry_type: 'reported_skip' }),
+      ]),
+      today,
+    );
+    expect(load(buildMuscleMap(model, 4), 'lats')).toMatchObject({ sets: 0, step: 0, last: null, exercises: [] });
+  });
+
+  it('counts sets reported per side once', () => {
+    const model = buildModel(
+      data([
+        entry('2026-11-10', 'A', 'core_rotation', [
+          { side: 'left', reps: 12 },
+          { side: 'left', reps: 12 },
+          { side: 'right', reps: 12 },
+          { side: 'right', reps: 10 },
+        ]),
+      ]),
+      today,
+    );
+    expect(load(buildMuscleMap(model, 4), 'obliques').sets).toBe(2);
+  });
+
+  it('counts only the period, but remembers the last training before it', () => {
+    const model = buildModel(
+      data([
+        entry('2026-10-18', 'A', 'leg_extension', sets(3, 12, 30)),
+        entry('2026-10-19', 'B', 'seated_leg_curl', sets(3, 12, 30)),
+        entry('2026-11-20', 'A', 'seated_leg_curl', sets(3, 12, 30)),
+      ]),
+      today,
+    );
+    const four = buildMuscleMap(model, 4);
+    expect(load(four, 'quads')).toMatchObject({ sets: 0, step: 0, last: '2026-10-18', exercises: [] });
+    expect(load(four, 'quads').others).toEqual(['leg_extension']);
+    // The workout in the future is not part of the model.
+    expect(load(four, 'hamstrings')).toMatchObject({ sets: 3, last: '2026-10-19' });
+
+    const eight = buildMuscleMap(model, 8);
+    expect(eight.start).toBe('2026-09-21');
+    expect(load(eight, 'quads')).toMatchObject({ sets: 3, perWeek: 3 / 8 });
+    expect(load(eight, 'quads').others).toEqual([]);
+  });
+
+  it('sorts least trained first, untrained by last training, then by name', () => {
+    const model = buildModel(
+      data([
+        entry('2026-09-01', 'A', 'leg_extension', sets(3, 12, 30)),
+        entry('2026-09-10', 'A', 'triceps_pushdown', sets(3, 12, 30)),
+        entry('2026-11-10', 'A', 'hammer_curl', sets(8, 12, 10)),
+        entry('2026-11-10', 'A', 'seated_leg_curl', sets(4, 12, 10)),
+      ]),
+      today,
+    );
+    const ids = buildMuscleMap(model, 4).muscles.map((m) => m.id);
+    expect(ids).toHaveLength(Object.keys(MUSCLES).length);
+    // Never trained (by name: Adduktoren, Bauch, Brust …), then quads (1 Sep) and triceps (10 Sep),
+    // then by sets per week: calves 0.5, hamstrings 1, biceps and forearms 2 (by name).
+    expect(ids.slice(0, 3)).toEqual(['adductors', 'abs', 'chest']);
+    expect(ids.slice(-6)).toEqual(['quads', 'triceps', 'calves', 'hamstrings', 'biceps', 'forearms']);
+  });
+
+  it('names exercises that have no muscles assigned and leaves them out', () => {
+    const model = buildModel(
+      data([
+        entry('2026-11-10', 'A', 'squat', sets(3, 10, 40), { exercise_name: 'Kniebeuge' }),
+        entry('2026-11-10', 'A', 'leg_extension', sets(3, 12, 30)),
+      ]),
+      today,
+    );
+    const map = buildMuscleMap(model, 4);
+    expect(map.unmapped).toEqual([{ id: 'squat', name: 'Kniebeuge' }]);
+    expect(load(map, 'quads').sets).toBe(3);
+    expect(load(map, 'glutes').sets).toBe(0);
+  });
+
+  it('picks the three least trained groups of the default period for the start page', () => {
+    const model = buildModel(
+      data([
+        entry('2026-10-01', 'A', 'core_rotation', sets(3, 12)),
+        entry('2026-11-10', 'A', 'leg_press', sets(3, 12, 50)),
+      ]),
+      today,
+    );
+    // Obliques and abs were trained before the period, so the never trained groups come first.
+    expect(leastTrained(model).map((m) => m.name)).toEqual(['Bizeps', 'Brust', 'Hintere Schulter']);
+    expect(leastTrained(model, 1)).toHaveLength(1);
+  });
+
+  it('maps sets per week to colour steps', () => {
+    expect([0, 0.5, 1.99, 2, 4, 7.9, 8, 20].map(loadStep)).toEqual([0, 1, 1, 2, 3, 4, 5, 5]);
   });
 });

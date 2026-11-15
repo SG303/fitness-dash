@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { todayIn } from './lib/dates';
   import { formatTimestamp } from './lib/format';
   import { DataError, buildModel, parseData, type Model } from './lib/model';
@@ -9,16 +9,53 @@
   import WeeklyVolume from './components/WeeklyVolume.svelte';
   import ExerciseList from './components/ExerciseList.svelte';
   import ThemeSwitch from './components/ThemeSwitch.svelte';
+  import MuscleMap from './components/MuscleMap.svelte';
+  import MuscleTeaser from './components/MuscleTeaser.svelte';
 
   const DATA_URL = '/data/trainingsdaten.json';
   const CACHE_KEY = 'fitness-dash:data';
   const TIMEOUT_MS = 8000;
+  /** The muscle map is a page of its own at this hash, so back gestures, bookmarks and reloads work. */
+  const MAP_HASH = '#muskelkarte';
 
   let model = $state<Model | null>(null);
   let error = $state<string | null>(null);
   let loading = $state(true);
   let lastBody = '';
   let lastToday = '';
+
+  let page = $state<'home' | 'map'>(location.hash === MAP_HASH ? 'map' : 'home');
+  /** Opened from the start page in this session: "Zurück" can then go back in the history. */
+  let openedFromHome = false;
+  let homeScroll = 0;
+
+  async function route() {
+    const next = location.hash === MAP_HASH ? 'map' : 'home';
+    if (next === page) return;
+    if (next === 'map') {
+      homeScroll = window.scrollY;
+      openedFromHome = true;
+    }
+    page = next;
+    await tick();
+    window.scrollTo(0, next === 'home' ? homeScroll : 0);
+    document.querySelector<HTMLElement>(next === 'map' ? '#map-title' : '.nav')?.focus({ preventScroll: true });
+  }
+
+  function back(event: MouseEvent) {
+    event.preventDefault();
+    if (openedFromHome) {
+      history.back();
+    } else {
+      // Opened directly (bookmark or reload): replace the entry instead of leaving the app.
+      history.replaceState(null, '', location.pathname + location.search);
+      route();
+    }
+  }
+
+  $effect(() => {
+    document.title = page === 'map' ? 'Muskelkarte – Fitness-Dash' : 'Fitness-Dash';
+  });
 
   /** Builds the view from a JSON body; skips the work when nothing changed. */
   function show(body: string) {
@@ -79,34 +116,53 @@
       }
     }
     load();
+    window.addEventListener('hashchange', route);
     // Opening the app from the home screen or switching back to the tab fetches fresh data.
     const onVisible = () => document.visibilityState === 'visible' && load();
     document.addEventListener('visibilitychange', onVisible);
-    return () => document.removeEventListener('visibilitychange', onVisible);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('hashchange', route);
+    };
   });
 </script>
 
 <div class="page" class:stale={loading && model}>
-  <ThemeSwitch />
+  <div class="topbar">
+    {#if page === 'map'}
+      <a class="nav" href="./" onclick={back}>
+        <svg class="chevron" viewBox="0 0 8 12" aria-hidden="true"><path d="M6 1L1 6l5 5" /></svg>
+        Zurück
+      </a>
+    {:else}
+      <a class="nav" href={MAP_HASH}>Muskelkarte</a>
+    {/if}
+    <ThemeSwitch />
+  </div>
   {#if model}
     {#if error}
       <p class="banner" role="status">{error} Angezeigt wird der zuletzt geladene Stand.</p>
     {/if}
 
-    <Activity {model}>
-      {#if model.workouts.length > 0}
-        <Stats {model} />
-        {#if model.next}
-          <NextWorkout next={model.next} />
-        {/if}
-      {/if}
-    </Activity>
-
-    {#if model.workouts.length > 0}
-      <WeeklyVolume weeks={model.weeks} />
-      <ExerciseList exercises={model.exercises} />
+    {#if page === 'map'}
+      <MuscleMap {model} />
     {:else}
-      <p class="empty">Sobald Hermes das erste Training speichert, erscheinen hier Kennzahlen, Gewichte und Verlauf.</p>
+      <Activity {model}>
+        {#if model.workouts.length > 0}
+          <Stats {model} />
+          <MuscleTeaser {model} href={MAP_HASH} />
+          {#if model.next}
+            <NextWorkout next={model.next} />
+          {/if}
+        {/if}
+      </Activity>
+
+      {#if model.workouts.length > 0}
+        <WeeklyVolume weeks={model.weeks} />
+        <ExerciseList exercises={model.exercises} />
+      {:else}
+        <p class="empty">Sobald Hermes das erste Training speichert, erscheinen hier Kennzahlen, Gewichte und Verlauf.</p>
+      {/if}
     {/if}
 
     <footer class="footer">
@@ -130,6 +186,39 @@
     margin: 0 auto;
     padding: max(env(safe-area-inset-top), 1.25rem) var(--gutter) max(env(safe-area-inset-bottom), 2rem);
     transition: opacity 0.2s;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: calc(2rem + 6px);
+    padding: 0 0.9rem;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    color: var(--ink);
+    font-size: var(--step--1);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .nav:hover {
+    border-color: var(--ink-3);
+  }
+
+  .chevron {
+    width: 0.5rem;
+    height: 0.75rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
   }
 
   .stale {
