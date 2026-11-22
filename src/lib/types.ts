@@ -19,6 +19,8 @@ export interface RawEntry {
   /** "reported_performance" or "reported_skip". */
   entry_type: string;
   sets: RawSet[];
+  /** entry_id of an earlier entry this one replaces; only the correction counts. */
+  corrects_entry_id?: string | null;
 }
 
 export interface RawSession {
