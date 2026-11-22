@@ -6,6 +6,19 @@ project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-22
+
+### Added
+
+- Muscle map: Rotary Torso, back extension and calf raise are assigned to
+  their muscles.
+- Short display names for exercises with long names (`EXERCISE_NAMES`).
+
+### Fixed
+
+- A corrected entry (`corrects_entry_id`) replaces the original instead of
+  showing both.
+
 ## [0.4.0] - 2026-11-15
 
 ### Added
@@ -63,7 +76,8 @@ project uses [Semantic Versioning](https://semver.org/).
 - The app is now called "Fitness-Dash" (headline, browser tab and installed
   app).
 
-[Unreleased]: https://github.com/SG303/fitness-dash/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/SG303/fitness-dash/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/SG303/fitness-dash/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/SG303/fitness-dash/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/SG303/fitness-dash/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/SG303/fitness-dash/compare/v0.1.0...v0.2.0

@@ -82,6 +82,9 @@ export const EXERCISE_MUSCLES: Record<string, { main: MuscleId[]; secondary: Mus
   triceps_pushdown:             { main: ['triceps'],            secondary: [] },
   triceps_pushdown_rope:        { main: ['triceps'],            secondary: [] },
   core_rotation:                { main: ['obliques'],           secondary: ['abs'] },
+  rotary_torso_matrix:          { main: ['obliques'],           secondary: ['abs'] },
+  back_extension_matrix_bench:  { main: ['lower_back'],         secondary: ['glutes', 'hamstrings'] },
+  calf_raise_technogym_plate_loaded: { main: ['calves'],        secondary: [] },
   seated_row:                   { main: ['upper_back', 'lats'], secondary: ['biceps', 'rear_delts'] },
   rowing:                       { main: ['upper_back', 'lats'], secondary: ['biceps', 'rear_delts'] },
   pec_fly:                      { main: ['chest'],              secondary: ['front_delts'] },
@@ -95,6 +98,13 @@ export const EXERCISE_MUSCLES: Record<string, { main: MuscleId[]; secondary: Mus
   hammer_curl_rope:             { main: ['biceps', 'forearms'], secondary: [] },
   reverse_curl_fixed_barbell:   { main: ['forearms'],           secondary: ['biceps'] },
   deadhang:                     { main: ['forearms'],           secondary: ['lats'] },
+};
+
+/** Short display names for exercises whose name from Hermes is too long, by exercise_id. */
+export const EXERCISE_NAMES: Record<string, string> = {
+  rotary_torso_matrix: 'Rotary Torso',
+  back_extension_matrix_bench: 'Hyperextension',
+  calf_raise_technogym_plate_loaded: 'Wadenheben',
 };
 
 export type Unit = 'kg' | 's' | 'reps';
@@ -301,13 +311,20 @@ function humanize(id: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
+/** Display name: the short name from EXERCISE_NAMES, else Hermes' name, else the id. */
+export function exerciseName(id: string, name?: string | null): string {
+  return EXERCISE_NAMES[id] ?? name ?? humanize(id);
+}
+
 function byPosition(a: RawEntry, b: RawEntry): number {
   return (a.plan_position ?? 99) - (b.plan_position ?? 99);
 }
 
 function groupWorkouts(data: RawData): Workout[] {
   const groups = new Map<string, Workout>();
+  const corrected = new Set(data.performance_entries.map((e) => e.corrects_entry_id).filter(Boolean));
   for (const entry of data.performance_entries) {
+    if (corrected.has(entry.entry_id)) continue;
     const session = entry.session_id ? data.sessions[entry.session_id] : undefined;
     const date = session?.workout_date ?? entry.workout_date;
     if (!date) continue;
@@ -364,7 +381,7 @@ function buildExercises(workouts: Workout[], data: RawData): Exercise[] {
     const comment = data.exercise_comments[id]?.text ?? null;
     exercises.push({
       id,
-      name: lastEntry.exercise_name ?? humanize(id),
+      name: exerciseName(id, lastEntry.exercise_name),
       plan: list[list.length - 1].workout.plan,
       position: lastEntry.plan_position,
       unit,
@@ -403,7 +420,7 @@ function buildNext(workouts: Workout[], exercises: Exercise[], data: RawData): N
         const exercise = known.get(entry.exercise_id) ?? null;
         return {
           id: entry.exercise_id,
-          name: exercise?.name ?? entry.exercise_name ?? humanize(entry.exercise_id),
+          name: exercise?.name ?? exerciseName(entry.exercise_id, entry.exercise_name),
           exercise,
           skippedLastTime: template.skipped.includes(entry),
           comment: data.exercise_comments[entry.exercise_id]?.text ?? null,
@@ -415,7 +432,7 @@ function buildNext(workouts: Workout[], exercises: Exercise[], data: RawData): N
     ? []
     : Object.values(data.exercise_comments)
         .filter((c) => c.text && !known.has(c.exercise_id))
-        .map((c) => ({ id: c.exercise_id, name: humanize(c.exercise_id), text: c.text as string }));
+        .map((c) => ({ id: c.exercise_id, name: exerciseName(c.exercise_id), text: c.text as string }));
 
   return { plan, basedOn: template?.date ?? null, items, openComments };
 }

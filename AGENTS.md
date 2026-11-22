@@ -40,8 +40,8 @@ versioned GitHub releases without build artifacts.
   (`src/lib/dates.ts`). "Today" comes from the `timezone` field of the data.
 - Hermes owns `trainingsdaten.json`; the dashboard never writes it. Its rules
   live in `README.md` next to the data file (corrections, comments, skips).
-  Corrections of entries have no fixed field yet; handle them once Hermes
-  writes the first one.
+  A correction is a new entry with `corrects_entry_id` set to the entry it
+  replaces; the dashboard drops the replaced entry.
 - Rules with tuning knobs are constants at the top of `model.ts`
   (`PLAN_ROTATION`, `WEEKLY_TARGET`, `STALL_SESSIONS`, `VOLUME_WEEKS`,
   `DURATION_WORKOUTS`, `MUSCLE_PERIODS`, `SECONDARY_WEIGHT`, `LOAD_STEPS`,
@@ -50,7 +50,9 @@ versioned GitHub releases without build artifacts.
 - The exercise → muscle mapping is `EXERCISE_MUSCLES` in `model.ts`, keyed by
   `exercise_id`; muscle groups and their German names are `MUSCLES`. When
   Hermes logs a new exercise, add it there (the muscle map names unmapped
-  exercises). Hermes and `trainingsdaten.json` know nothing about muscles.
+  exercises). Short display names for exercises whose Hermes name is too
+  long go in `EXERCISE_NAMES`. Hermes and `trainingsdaten.json` know
+  nothing about muscles.
 - Navigation has no router: the muscle map is the page at `#muskelkarte`,
   the weight the page at `#gewicht` (`App.svelte` switches on the hash). Keep
   them in the main bundle, no lazy chunk, so the service worker caches them

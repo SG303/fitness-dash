@@ -1,6 +1,6 @@
 <script lang="ts">
   import { formatLongDate, formatMinutes, formatValue, formatWhole } from '../lib/format';
-  import type { Model } from '../lib/model';
+  import { exerciseName, type Model } from '../lib/model';
 
   let { model, date, onpick }: { model: Model; date: string; onpick: (date: string) => void } = $props();
 
@@ -37,7 +37,7 @@
       {#each workout.entries as entry (entry.entry_id)}
         {@const info = pointFor(entry.exercise_id, workout.id)}
         <li>
-          <span class="name">{entry.exercise_name ?? entry.exercise_id}</span>
+          <span class="name">{exerciseName(entry.exercise_id, entry.exercise_name)}</span>
           <span class="sets">{info?.point.sets}</span>
           <span class="value figure">
             {#if info?.point.record}<span class="record" aria-hidden="true">▲</span><span class="visually-hidden">Neuer Rekord:</span>{/if}
@@ -47,7 +47,7 @@
       {/each}
       {#each workout.skipped as entry (entry.entry_id)}
         <li class="skipped">
-          <span class="name">{entry.exercise_name ?? entry.exercise_id}</span>
+          <span class="name">{exerciseName(entry.exercise_id, entry.exercise_name)}</span>
           <span class="sets">ausgelassen</span>
         </li>
       {/each}

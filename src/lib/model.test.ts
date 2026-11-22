@@ -136,6 +136,28 @@ describe('buildModel', () => {
     expect(m.exercises.find((e) => e.id === 'deadhang')?.unit).toBe('s');
   });
 
+  it('counts only the correction when an entry was corrected', () => {
+    const wrong = entry('2026-11-22', 'B', 'rotary_torso_matrix', sets(2, 2, 45));
+    const fixed = entry('2026-11-22', 'B', 'rotary_torso_matrix', sets(2, 15, 45), {
+      corrects_entry_id: wrong.entry_id,
+    });
+    const m = buildModel(data([wrong, fixed]), '2026-11-22');
+    expect(m.workouts[0].entries).toEqual([fixed]);
+    expect(m.workouts[0].volume).toBe(2 * 15 * 45);
+    expect(m.exercises[0].points.map((p) => p.sets)).toEqual(['2 × 15']);
+  });
+
+  it('prefers the short name from EXERCISE_NAMES over the name from Hermes', () => {
+    const m = buildModel(
+      data([
+        entry('2026-11-22', 'B', 'rotary_torso_matrix', sets(2, 15, 45), { exercise_name: 'Rotary Torso (Matrix)' }),
+        entry('2026-11-22', 'B', 'leg_press', sets(2, 12, 50), { exercise_name: 'Beinpresse' }),
+      ]),
+      '2026-11-22',
+    );
+    expect(m.exercises.map((e) => e.name).sort()).toEqual(['Beinpresse', 'Rotary Torso']);
+  });
+
   it('ignores entries without a date and workouts in the future', () => {
     const m = buildModel(
       data([
