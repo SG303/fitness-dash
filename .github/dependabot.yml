@@ -32,6 +32,12 @@ updates:
       npm:
         update-types: [minor, patch]
     open-pull-requests-limit: 5
+    ignore:
+      # svelte-check 4.x peers on TypeScript ^5 || ^6 and typescript-eslint
+      # 8.x on <6.1.0; TypeScript 7 (native compiler) breaks npm ci. Remove
+      # once both support it.
+      - dependency-name: typescript
+        versions: [">=7.0.0"]
 
   # Base images in the Dockerfiles (app and Withings sync)
   - package-ecosystem: docker
