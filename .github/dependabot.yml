@@ -1,4 +1,8 @@
-# Dependabot config (baseline v1).
+# Dependabot config (baseline v2). Weekly on Sunday evening, minor and patch
+# updates grouped into one PR per ecosystem; the auto-merge workflow merges
+# them once the required checks pass. Majors come as separate PRs for review.
+# The 7-day cooldown skips versions younger than a week (most malicious
+# releases are found and pulled by then); security updates are not delayed.
 version: 2
 updates:
   - package-ecosystem: github-actions
@@ -29,9 +33,9 @@ updates:
         update-types: [minor, patch]
     open-pull-requests-limit: 5
 
-  # Base images in the Dockerfile
+  # Base images in the Dockerfiles (app and Withings sync)
   - package-ecosystem: docker
-    directory: /
+    directories: ["/", "/withings"]
     schedule:
       interval: weekly
       day: sunday
